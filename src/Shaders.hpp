@@ -288,7 +288,7 @@ void main() {
     }
 
     float cornerSdf    = getCornerSDF(uv);
-    float cornerAlpha  = 1.0 - smoothstep(-1.5, 0.5, cornerSdf);
+    float cornerAlpha  = all(equal(radii, vec4(0.0))) ? 1.0 : (1.0 - smoothstep(-1.5, 0.5, cornerSdf));
 
     if (maskMode == 1) {
         // Subsurface items: the glass box (glassBoxOffsetPx/SizePx) can be
@@ -449,8 +449,18 @@ void main() {
         float tail = sizePx;
         float ring = (1.0 - smoothstep(-core, 0.0, cornerSdf)) * smoothstep(-tail, -core, cornerSdf);
 
-        // lit side faces the light, the far side fades out and can be shadowed
-        float facing = clamp(dot(sdfOutwardNormal(uv), lightDir(bevelAngle)) * 0.5 + 0.5, 0.0, 1.0);
+        vec2 norm = sdfOutwardNormal(uv);
+        float facing;
+        float darkFacing;
+        if (bevelAngle < -0.5 || bevelAngle > 360.0) {
+            // iOS 27 vertical double-rim highlight with lateral ambient occlusion
+            facing = smoothstep(0.35, 0.85, abs(norm.y));
+            darkFacing = smoothstep(0.35, 0.85, abs(norm.x));
+        } else {
+            // lit side faces the light, the far side fades out and can be shadowed
+            facing = clamp(dot(norm, lightDir(bevelAngle)) * 0.5 + 0.5, 0.0, 1.0);
+            darkFacing = 1.0 - facing;
+        }
 
         vec3 bevelLight = vec3(1.0);
         if (bevelColorAlpha > 0.001) bevelLight = mix(vec3(1.0), bevelColor, bevelColorAlpha);   // a dark colour gives a dark line
@@ -461,7 +471,7 @@ void main() {
 
         // the fresnel tint below reads the bevelled colour, so bevel the copy too
         float bevelLit = ring * facing * bevelStrength;
-        float bevelDark = bevelShadow > 0.001 ? ring * (1.0 - facing) * bevelShadow : 0.0;
+        float bevelDark = bevelShadow > 0.001 ? ring * darkFacing * bevelShadow : 0.0;
         color = mix(mix(color, bevelLight, bevelLit), vec3(0.0), bevelDark);
         tintSource = mix(mix(tintSource, bevelLight, bevelLit), vec3(0.0), bevelDark);
     }

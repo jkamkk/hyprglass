@@ -1,5 +1,25 @@
 # HyprGlass - Liquid Glass inspired plugin for Hyprland
 
+> **Fork Enhancements / 本分支定制增强特性**
+>
+> 本分支基于官方 `hyprland-0.56` (v0.10.0) 稳定分支构建，深度调优并集成了两大核心修复与渲染增强：
+> 
+> 1. **屏幕边缘 1.5px 漏光微缝修复 (Full-screen Layer Edge Bleed Fix)**
+>    - 修复了全屏直角图层（如 Caelestia 桌面边框、各类无圆角 LayerSurface）屏幕物理边缘 1.5px 处因抗锯齿硬编码衰减导致的底图微缝透光问题（针对 `radii == 0` 满血直出不衰减）。
+> 2. **iOS 27 垂直对称光照与侧边环境遮蔽 (iOS 27 Vertical Double-Rim & Lateral AO)**
+>    - 突破原版单向平行光单侧受光局限，新增由正数标志位 `bevel_angle = 999.0` 激活动态垂直对称光照模型：
+>      - **顶部与底部边框**：沿垂直法线轴（`|norm.y|`）映射对称强高光，上下两条横向白光棱线清脆明亮；
+>      - **左右侧边边框**：沿水平法线轴（`|norm.x|`）映射侧边环境遮蔽细暗边（受 `bevel_shadow` 浓度控制）；
+>      - 彻底解决浅色壁纸下高光丢失问题，四角 45° 平滑过渡，还原纯正拟物流体玻璃质感。
+>
+> **使用与安装 (Installation via hyprpm)**:
+> ```bash
+> hyprpm add https://github.com/jkamkk/hyprglass feature/ios27-highlights-and-edge-fix
+> hyprpm enable hyprglass
+> hyprpm reload
+> ```
+> 在配置中指定 `bevel_angle = 999.0` 即可自动开启垂直双向高光模式。
+
 Liquid Glass for [Hyprland](https://hyprland.org/).
 
 Frosted blur, edge refraction, chromatic aberration, specular highlights — fully customizable, per-theme, on every window and layer surface.
