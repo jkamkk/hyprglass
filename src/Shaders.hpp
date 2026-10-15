@@ -445,22 +445,30 @@ void main() {
     // ========================================
     if (bevelStrength > 0.001) {
         float sizePx = max(bevelSize * monitorScale, 1.0);   // logical px, uniform across monitor scales
-        float core = 0.25 * sizePx;
-        float tail = sizePx;
-        float ring = (1.0 - smoothstep(-core, 0.0, cornerSdf)) * smoothstep(-tail, -core, cornerSdf);
-
         vec2 norm = sdfOutwardNormal(uv);
         float facing;
         float darkFacing;
+        float litSizePx = sizePx;
+
         if (bevelAngle < -0.5 || bevelAngle > 360.0) {
-            // iOS 27 vertical double-rim highlight with lateral ambient occlusion
-            facing = smoothstep(0.35, 0.85, abs(norm.y));
+            // iOS 27 vertical double-rim: highlights wrap past corners with tapered thinning
+            facing = smoothstep(0.05, 0.70, abs(norm.y));
             darkFacing = smoothstep(0.35, 0.85, abs(norm.x));
+            float taper = mix(0.40, 1.0, smoothstep(0.05, 0.80, abs(norm.y)));
+            litSizePx = max(sizePx * taper, 1.0);
         } else {
             // lit side faces the light, the far side fades out and can be shadowed
             facing = clamp(dot(norm, lightDir(bevelAngle)) * 0.5 + 0.5, 0.0, 1.0);
             darkFacing = 1.0 - facing;
         }
+
+        float core = 0.25 * sizePx;
+        float tail = sizePx;
+        float ringDark = (1.0 - smoothstep(-core, 0.0, cornerSdf)) * smoothstep(-tail, -core, cornerSdf);
+
+        float litCore = 0.25 * litSizePx;
+        float litTail = litSizePx;
+        float ringLit = (1.0 - smoothstep(-litCore, 0.0, cornerSdf)) * smoothstep(-litTail, -litCore, cornerSdf);
 
         vec3 bevelLight = vec3(1.0);
         if (bevelColorAlpha > 0.001) bevelLight = mix(vec3(1.0), bevelColor, bevelColorAlpha);   // a dark colour gives a dark line
@@ -470,8 +478,8 @@ void main() {
         }
 
         // the fresnel tint below reads the bevelled colour, so bevel the copy too
-        float bevelLit = ring * facing * bevelStrength;
-        float bevelDark = bevelShadow > 0.001 ? ring * darkFacing * bevelShadow : 0.0;
+        float bevelLit = ringLit * facing * bevelStrength;
+        float bevelDark = bevelShadow > 0.001 ? ringDark * darkFacing * bevelShadow : 0.0;
         color = mix(mix(color, bevelLight, bevelLit), vec3(0.0), bevelDark);
         tintSource = mix(mix(tintSource, bevelLight, bevelLit), vec3(0.0), bevelDark);
     }
