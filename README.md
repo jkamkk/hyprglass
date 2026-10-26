@@ -53,10 +53,9 @@
 >         frost = 1.0,                  -- 智能遮挡自适应深层磨砂
 >         frost_blur = 1.5,             -- 遮挡时的额外高斯磨砂量 (轻盈通透)
 >         dark = {
->             brightness = 1.10,
->             contrast = 1.08,
->             saturation = 1.35,            -- 提升透光全局色彩饱和度
->             vibrancy = 1.50,              -- 强效色彩鲜活性增强，杜绝发灰发闷
+>             brightness = 1.06,
+>             contrast = 1.0,
+>             vibrancy = 0.20,              -- 自然素雅，杜绝过度饱和
 >             tint_color = 0x00000000,
 >         },
 >     })
