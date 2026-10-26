@@ -166,11 +166,14 @@ vec2 toTexUV(vec2 wuv) {
 
 vec4 sampleBlurred(vec2 wuv) {
     vec2 tuv = toTexUV(toSampleBoxUV(wuv));
+    // Clamp to valid monitor content bounds; never sample the cleared black padding past screen edges
+    vec2 minUV = max(uvPadding, vec2(0.001));
+    vec2 maxUV = min(vec2(1.0) - uvPadding, vec2(0.999));
+    tuv = clamp(tuv, minUV, maxUV);
 #ifdef HYPRGLASS_FEATURE_FROST
-    tuv = clamp(tuv, 0.001, 0.999);
     return mix(texture(tex, tuv), texture(frostTex, tuv), frostAmount);
 #else
-    return texture(tex, clamp(tuv, 0.001, 0.999));
+    return texture(tex, tuv);
 #endif
 }
 
