@@ -994,11 +994,19 @@ void main() {
     ivec2 p = ivec2(gl_FragCoord.xy);
     ivec2 last = ivec2(fieldSize) - 1;
     float centre = texelFetch(tex, p, 0).r;
-    float left   = texelFetch(tex, clamp(p + ivec2(-1, 0), ivec2(0), last), 0).r;
-    float right  = texelFetch(tex, clamp(p + ivec2(1, 0), ivec2(0), last), 0).r;
-    float above  = texelFetch(tex, clamp(p + ivec2(0, -1), ivec2(0), last), 0).r;
-    float below  = texelFetch(tex, clamp(p + ivec2(0, 1), ivec2(0), last), 0).r;
-    fragColor = vec4(centre, vec2(right - left, below - above) / (2.0 * texelPx), 1.0);
+    // 3x3 Sobel kernel to eliminate angle quantization and polygonal faceting at rounded corners
+    float tl = texelFetch(tex, clamp(p + ivec2(-1, -1), ivec2(0), last), 0).r;
+    float tr = texelFetch(tex, clamp(p + ivec2( 1, -1), ivec2(0), last), 0).r;
+    float bl = texelFetch(tex, clamp(p + ivec2(-1,  1), ivec2(0), last), 0).r;
+    float br = texelFetch(tex, clamp(p + ivec2( 1,  1), ivec2(0), last), 0).r;
+    float l  = texelFetch(tex, clamp(p + ivec2(-1,  0), ivec2(0), last), 0).r;
+    float r  = texelFetch(tex, clamp(p + ivec2( 1,  0), ivec2(0), last), 0).r;
+    float t  = texelFetch(tex, clamp(p + ivec2( 0, -1), ivec2(0), last), 0).r;
+    float b  = texelFetch(tex, clamp(p + ivec2( 0,  1), ivec2(0), last), 0).r;
+
+    vec2 grad = vec2((tr + 2.0 * r + br) - (tl + 2.0 * l + bl),
+                     (bl + 2.0 * b + br) - (tl + 2.0 * t + tr)) / (8.0 * texelPx);
+    fragColor = vec4(centre, grad, 1.0);
 }
 )GLSL"},
 };

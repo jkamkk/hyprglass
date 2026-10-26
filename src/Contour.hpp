@@ -41,11 +41,11 @@ inline constexpr float NO_DISTANCE_SQUARED = 16384.0f;
 static_assert(2 * MAX_REACH_TEXELS * MAX_REACH_TEXELS < NO_DISTANCE_SQUARED);
 
 // The Gaussian that rounds the creases where distances from two edges meet.
-inline constexpr float SMOOTH_SIGMA_PER_BEZEL = 0.3f;
-inline constexpr float SMOOTH_SIGMA_MIN_PX    = 1.0f;
-inline constexpr float SMOOTH_SIGMA_MAX_PX    = 12.0f;
-inline constexpr float SMOOTH_SIGMA_MIN_TEXELS = 0.75f;
-inline constexpr int   SMOOTH_MAX_RADIUS      = 12; // texels each side; the shader loops to a uniform
+inline constexpr float SMOOTH_SIGMA_PER_BEZEL = 0.8f;
+inline constexpr float SMOOTH_SIGMA_MIN_PX    = 3.5f;
+inline constexpr float SMOOTH_SIGMA_MAX_PX    = 16.0f;
+inline constexpr float SMOOTH_SIGMA_MIN_TEXELS = 1.5f;
+inline constexpr int   SMOOTH_MAX_RADIUS      = 16; // texels each side; the shader loops to a uniform
 
 // A client that commits every frame still rebuilds at most this often: the last change
 // of a burst is rebuilt once the interval has passed.
