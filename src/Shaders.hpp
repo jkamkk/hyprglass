@@ -915,9 +915,11 @@ layout(location = 0) out vec4 fragColor;
 const float FAR = 16384.0;
 
 vec2 known(vec2 p) {
-    if (p.x < 0.0 || p.y < 0.0 || p.x >= fieldSize.x || p.y >= fieldSize.y)
-        return vec2(0.0, FAR);
-    return texelFetch(tex, ivec2(p), 0).rg;
+    // Clamp to edge texels: content touching monitor bezels (outer screen frame and left taskbar)
+    // is treated as continuous with the bezel rather than forming an outer outline against space.
+    // The ONLY outline created is the real inner border facing the wallpaper!
+    ivec2 cp = clamp(ivec2(p), ivec2(0), ivec2(fieldSize) - 1);
+    return texelFetch(tex, cp, 0).rg;
 }
 
 void main() {
