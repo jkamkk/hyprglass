@@ -539,12 +539,10 @@ bool CGlassLayerSurface::attachContour(PHLMONITOR monitor, const CBox& transform
     };
 
     if (m_contour.wantsBuild(key)) {
-        // The temp FBO only holds what this frame redrew: a field needs all of the layer in it.
-        if (GlassRenderer::damageCoversBox(transformBox, target, g_pHyprRenderer->m_renderData.damage, monitor)) {
-            if (!m_contour.build(key, m_surfaceTempFramebuffer, transformBox, alpha, target) && g_pGlobalState->contourUnavailable)
-                return false;
-        } else if (m_contour.noteUncoveredFrame())
-            damageSampleRegion();
+        // Rebuild contour whenever requested; do not block on whole-screen damage
+        // which full-screen shell layers (like Caelestia) never emit for sub-elements.
+        if (!m_contour.build(key, m_surfaceTempFramebuffer, transformBox, alpha, target) && g_pGlobalState->contourUnavailable)
+            return false;
     }
 
     // A stale field of the same geometry still beats the rectangle for the frame or two before the next build.
