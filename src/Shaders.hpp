@@ -379,11 +379,11 @@ void main() {
     }
 
 #ifdef HYPRGLASS_FEATURE_CONTOUR
-    // The traced outline replaces the layer box. The mask above already limits the glass
-    // to the visible content, so the outline only shapes the edge effects, not the cut.
+    // The traced outline replaces the layer box. Sub-pixel anti-aliasing via smoothstep
+    // on cornerSdf eliminates the jagged sawtooth edge along curved rounded corners.
     vec4  contourSample  = texture(contourTex, uv * contourUVScale);
     float cornerSdf      = contourSample.r;
-    float cornerAlpha    = 1.0;
+    float cornerAlpha    = 1.0 - smoothstep(-1.5, 0.5, cornerSdf);
     float contourGradLen = length(contourSample.gb);
     // zero where the field is flat (deep inside, or past its reach): no edge there
     vec2  contourOutward = contourGradLen > 0.05 ? contourSample.gb / contourGradLen : vec2(0.0);
@@ -505,7 +505,7 @@ void main() {
         float tailWindow = 1.0 - smoothstep(1.5 * bezelWidthPx, 3.0 * bezelWidthPx, depth);
         lensFalloff = mix(edgeProximity * tailWindow, edgeProximity, refractionSpread);
     }
-    float refractionMag = lensFalloff * refractionPx;
+    float refractionMag = lensFalloff * refractionPx * cornerAlpha; // Fade refraction to 0 at edge to prevent 30px displacement jump teeth
     vec2 dir = inwardDir;
 #ifndef HYPRGLASS_FEATURE_CONTOUR
     // (a traced outline already pulls along each edge's own normal)
