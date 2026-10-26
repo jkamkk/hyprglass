@@ -49,7 +49,7 @@ inline constexpr int   SMOOTH_MAX_RADIUS      = 16; // texels each side; the sha
 
 // A client that commits every frame still rebuilds at most this often: the last change
 // of a burst is rebuilt once the interval has passed.
-inline constexpr std::chrono::milliseconds MIN_REBUILD_INTERVAL{33};
+inline constexpr std::chrono::milliseconds MIN_REBUILD_INTERVAL{0}; // 240Hz unthrottled for fluid animations
 
 // While the layer fades in, its alpha is too coarse for a clean outline: that field is
 // provisional, and rebuilt once the layer is at least this opaque.
