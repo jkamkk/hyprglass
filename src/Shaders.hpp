@@ -439,7 +439,7 @@ void main() {
     float bevelSdf = cornerSdf;
     float edgeProximity = min(exp(bevelSdf * invBezelWidthPx), 1.0) *
                           (1.0 - smoothstep(0.5 * contourReachPx, contourReachPx, -bevelSdf));
-    vec2 inwardDir = -contourOutward;
+    vec2 inwardDir = contourOutward; // Pull colorful wallpaper from outside the shape into the edge!
 #else
     float bevelSdf = roundingPower == 2.0 ? getBevelSDF(uv) : cornerSdf;
     float edgeProximity = min(exp(bevelSdf * invBezelWidthPx), 1.0);
