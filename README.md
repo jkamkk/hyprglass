@@ -1,5 +1,136 @@
 # HyprGlass - Liquid Glass inspired plugin for Hyprland
 
+> **Fork Enhancements / 本分支定制增强与 Caelestia 深度适配 (v0.11.0)**
+>
+> 本分支基于官方 `hyprland-0.56` (v0.11.0, commit `7fc3280`) 稳定分支构建，深度优化并攻克了全屏复杂桌面图层（如 Caelestia Shell）的轮廓渲染死穴，集成多项高刷与着色器级硬核修复：
+>
+> 1. **全屏图层轮廓撕裂与黑洞根治 (Physical Bezel Anchoring & Sample Clamp)**
+>    - 修复了全屏直角图层 `radii == 0` 处 1.5px 边缘防溢出；
+>    - 彻底重构 `contouredt.frag`：将物理显示器边界视为实体延续（clamp to edge），严禁在物理塑料黑边凭空造出外沿轮廓导致向屏幕外撕裂黑洞或腰斩左侧任务栏；
+>    - 在 `sampleBlurred()` 中强制夹紧至 `[uvPadding, 1.0 - uvPadding]`，物理阻断向外采样 110px 清屏黑底通道。
+> 2. **Caelestia 形变抽屉折射物理纠偏 (Outward Refraction Vector Fix)**
+>    - 修复原版 Contour 模式下反向使用 `-contourOutward` 导致抽屉边缘在自身暗灰底板平移隐形的严重缺陷；改为 `+contourOutward` 向外强力抓取并弯折壁纸图像，令内边框与隆起抽屉的液态折射感瞬间饱满呈现。
+> 3. **2 倍高精距离场网格 (Divisor=2)**
+>    - 将 `MAX_TEXELS` 提升至 200 万，在 2560x1600 等高分屏下解锁 2 倍高精轮廓网格，彻底消灭原版 4 倍网格导致的 4px 阶梯锯齿。
+> 4. **3×3 Sobel 梯度滤波与加厚平滑**
+>    - 引入计算机视觉标准 3×3 Sobel 卷积算子替代原版 1 像素十字差分，配合加厚高斯滤波（`sigma=3.5px`），使圆角边缘法线 360° 连续平滑旋转，彻底根除圆角“八边形分截折线”。
+> 5. **次像素反走样与折射位移渐变消融**
+>    - 为 Contour 补全次像素平滑 `cornerAlpha = 1.0 - smoothstep(-1.5, 0.5, cornerSdf)`，令折射位移在触碰轮廓外沿的微米瞬间平滑衰减归零，彻底消灭圆角内沿狗啃微观锯齿牙。
+> 6. **240Hz 满血解锁 (Unthrottled 240 FPS Animations)**
+>    - 解除上游硬编码的 `MIN_REBUILD_INTERVAL{33}`（30 FPS 限速），设为 `0ms` 满血释放，使 Caelestia 抽屉弹出动画每一帧即时重建，享受 240Hz 极限丝滑。
+> 7. **iOS 27 垂直对称渐变双高光 (Tapered Thinning Highlights)**
+>    - 保留 `bevel_angle = 999.0` 垂直双向高光模型，上下边框对称高光并在圆角处平滑渐细过渡，全面适配 `HYPRGLASS_FEATURE_CONTOUR`。
+>
+> ---
+>
+> ### 我的实机推荐配置指南 (My Daily Setup Guide)
+>
+> 在 `~/.config/caelestia/hypr-user.lua` 中搭配使用，即可获得极致通透的普通窗口与 Caelestia 液态内边框形变体验：
+>
+> ```lua
+> if hl.plugin.hyprglass then
+>     local hg = hl.plugin.hyprglass
+>
+>     -- 1. 普通窗口预设：赛博微棱镜 + 智能遮挡磨砂 + 纯白呼吸光边
+>     hg.preset("prism_glass", {
+>         inherits = "pomme",
+>         edge_thickness = 0.020,
+>         tint_color = 0x00000000,
+>         refraction_strength = 3.0,
+>         chromatic_aberration = 0.22,
+>         lens_distortion = 0.20,
+>         bevel_strength = 0.95,
+>         bevel_size = 3.0,
+>         bevel_angle = 999.0,          -- 激活 iOS 27 垂直双高光
+>         bevel_shadow = 0.40,
+>         bevel_tint = 0.20,
+>         noise_strength = 0.028,
+>         fresnel_strength = 0.65,
+>         fresnel_tint = 0.50,
+>         specular_strength = 0.80,
+>         focus_light = 0.80,           -- 活动窗口纯白呼吸光圈
+>         focus_light_color = 0xffffffff,
+>         frost = 1.0,                  -- 智能遮挡自适应深层磨砂
+>         frost_blur = 1.5,             -- 遮挡时的额外高斯磨砂量
+>         dark = {
+>             brightness = 1.06,
+>             contrast = 1.0,
+>             vibrancy = 0.20,
+>             tint_color = 0x00000000,
+>         },
+>     })
+>
+>     -- 2. Caelestia 图层专属预设：满血折射 + 85% 强环境色微晶高光
+>     hg.preset("caelestia_glass", {
+>         inherits = "prism_glass",
+>         specular_strength = 0.0,
+>         bevel_strength = 0.50,        -- 细如发丝的 2px 倒角微晶
+>         bevel_size = 2.0,
+>         bevel_shadow = 0.0,
+>         bevel_tint = 0.85,            -- 85% 强环境色动态汲取染色
+>         fresnel_strength = 0.40,
+>         fresnel_tint = 0.85,
+>         xray = false,
+>     })
+>
+>     -- 3. 全局参数：解除背景 30 FPS 刷新限速，满血 240Hz
+>     hg.config({
+>         enabled = true,
+>         manage_window_blur = true,
+>         skip_opaque_windows = true,
+>         default_theme = "dark",
+>         default_preset = "prism_glass",
+>         tint_color = 0x00000000,
+>         blur_strength = 2.4,
+>         blur_iterations = 3,
+>         refraction_strength = 1.25,
+>         refraction_flow = 0.2,
+>         refraction_spread = 0.9,
+>         chromatic_aberration = 0.82,
+>         fresnel_strength = 0.78,
+>         specular_strength = 0.82,
+>         bevel_strength = 0.58,
+>         bevel_size = 5.0,
+>         glass_opacity = 1.0,
+>         edge_thickness = 0.075,
+>         lens_distortion = 0.62,
+>         focus_light = 0.80,
+>         focus_light_color = 0xffffffff,
+>         frost = 1.0,
+>         frost_blur = 1.5,
+>         dark = {
+>             brightness = 0.92,
+>             contrast = 1.02,
+>             saturation = 0.98,
+>             adaptive_dim = 0.18,
+>         },
+>         windows = {
+>             live_resample_fps = 0,    -- 解锁普通窗口背景 240Hz 实时刷新
+>         },
+>         layers = {
+>             enabled = true,
+>             live_resample_fps = 0,    -- 解锁图层背景 240Hz 实时刷新
+>         },
+>     })
+>
+>     -- 4. 挂载 Caelestia 抽屉自适应轮廓
+>     hg.layer("caelestia-drawers", {
+>         preset = "caelestia_glass",
+>         mask_mode = "contour",
+>         mask_threshold = 0.3,
+>         mask_feather = 0.20,          -- 20% 边缘羽化消除微观走样
+>     })
+> end
+> ```
+>
+> **使用与安装 (Installation via hyprpm)**:
+> ```bash
+> hyprpm add https://github.com/jkamkk/hyprglass feature/v0.11.0-ios27
+> hyprpm enable hyprglass
+> hyprpm reload
+> ```
+
+
 Liquid Glass for [Hyprland](https://hyprland.org/).
 
 Frosted blur, edge refraction, chromatic aberration, specular highlights — fully customizable, per-theme, on every window and layer surface.
