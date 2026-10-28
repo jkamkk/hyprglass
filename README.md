@@ -48,8 +48,7 @@
 >         fresnel_strength = 0.65,
 >         fresnel_tint = 0.50,
 >         specular_strength = 0.80,
->         focus_light = 0.80,           -- 活动窗口纯白呼吸光圈
->         focus_light_color = 0xffffffff,
+>         focus_light = 0.0,            -- 关闭多余光圈，保持纯正素雅
 >         frost = 1.0,                  -- 智能遮挡自适应深层磨砂
 >         frost_blur = 1.5,             -- 遮挡时的额外高斯磨砂量 (轻盈通透)
 >         dark = {
@@ -94,8 +93,7 @@
 >         glass_opacity = 1.0,
 >         edge_thickness = 0.075,
 >         lens_distortion = 0.62,
->         focus_light = 0.80,
->         focus_light_color = 0xffffffff,
+>         focus_light = 0.0,
 >         frost = 1.0,
 >         frost_blur = 1.5,
 >         dark = {
