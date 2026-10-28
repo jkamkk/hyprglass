@@ -117,8 +117,8 @@
 >     hg.layer("caelestia-drawers", {
 >         preset = "caelestia_glass",
 >         mask_mode = "contour",
->         mask_threshold = 0.3,
->         mask_feather = 0.20,          -- 20% 边缘羽化消除微观走样
+>         mask_threshold = 0.05,        -- 设为 0.05 完美覆盖浅色模式下低至 0.16-0.28 的半透明底板
+>         mask_feather = 0.10,          -- 边缘羽化消除走样
 >     })
 > end
 > ```
