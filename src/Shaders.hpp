@@ -389,7 +389,7 @@ void main() {
     vec2  contourOutward = contourGradLen > 0.05 ? contourSample.gb / contourGradLen : vec2(0.0);
 #else
     float cornerSdf    = getCornerSDF(uv);
-    float cornerAlpha  = all(equal(radii, vec4(0.0))) ? 1.0 : (1.0 - smoothstep(-1.5, 0.5, cornerSdf));
+    float cornerAlpha  = all(equal(radii, vec4(0.0))) ? 1.0 : (1.0 - smoothstep(-1.0, 0.6, cornerSdf));
 #endif
 
     if (hasMask) {
@@ -408,7 +408,8 @@ void main() {
         }
     } else {
         // Windows: no surface pixel to fall back to outside the glass shape.
-        if (cornerSdf > 0.0) discard;
+        // Match Hyprland rounding.glsl (radius + SMOOTHING_CONSTANT ~0.5875px) so glass covers the surface arc
+        if (cornerSdf > 0.6) discard;
         if (cornerAlpha < 0.001) discard;
     }
 
