@@ -31,7 +31,7 @@
 > if hl.plugin.hyprglass then
 >     local hg = hl.plugin.hyprglass
 >
->     -- 1. 普通窗口预设：赛博微棱镜 + 智能遮挡磨砂 + 纯白呼吸光边
+>     -- 1. 普通窗口预设：赛博微棱镜 + 智能遮挡磨砂 + 85% 强环境色微晶高光
 >     hg.preset("prism_glass", {
 >         inherits = "pomme",
 >         edge_thickness = 0.020,
@@ -43,9 +43,9 @@
 >         bevel_size = 3.0,
 >         bevel_angle = 999.0,          -- 激活 iOS 27 垂直双高光
 >         bevel_shadow = 0.40,
->         bevel_tint = 0.20,
+>         bevel_tint = 0.85,
 >         noise_strength = 0.028,
->         fresnel_strength = 0.65,
+>         fresnel_strength = 1.0,
 >         fresnel_tint = 0.50,
 >         specular_strength = 0.80,
 >         focus_light = 0.0,            -- 关闭多余光圈，保持纯正素雅
